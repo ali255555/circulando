@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulando – ILA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .chat-container {
+      width: 380px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+    }
+
+    .chat-header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .chat-header p {
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 320px;
+      overflow-y: auto;
+    }
+
+    .ila-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    /* ─── ILA avatar bubble ─── */
+    .ila-bubble {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #f3f0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(108,92,231,0.18);
+    }
+
+    .ila-message {
+      background: #f3f0ff;
+      color: #2d3436;
+      border-radius: 18px 18px 18px 4px;
+      padding: 10px 14px;
+      max-width: 240px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .user-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-message {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      color: #fff;
+      border-radius: 18px 18px 4px 18px;
+      padding: 10px 14px;
+      max-width: 240px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .chat-input-area {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-top: 1px solid #eee;
+      gap: 8px;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      padding: 8px 16px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input-area input:focus {
+      border-color: #6c5ce7;
+    }
+
+    .chat-input-area button {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+
+    .chat-input-area button:hover { opacity: 0.85; }
+
+    .chat-input-area button svg {
+      fill: #fff;
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ILA avatar SVG definition – defined once, reused everywhere via <use> -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <symbol id="ila-avatar" viewBox="0 0 100 100">
+      <!-- Background circle -->
+      <circle cx="50" cy="50" r="50" fill="#fde8d8"/>
+      <!-- Hair – warm dark-brown, soft waves -->
+      <ellipse cx="50" cy="28" rx="24" ry="22" fill="#4a2c0a"/>
+      <!-- Side hair left -->
+      <ellipse cx="28" cy="52" rx="8" ry="18" fill="#4a2c0a"/>
+      <!-- Side hair right -->
+      <ellipse cx="72" cy="52" rx="8" ry="18" fill="#4a2c0a"/>
+      <!-- Hair top highlight -->
+      <ellipse cx="46" cy="20" rx="10" ry="6" fill="#6b3f14" opacity="0.5"/>
+      <!-- Neck -->
+      <rect x="43" y="74" width="14" height="14" rx="4" fill="#f4b89a"/>
+      <!-- Face / skin -->
+      <ellipse cx="50" cy="55" rx="22" ry="26" fill="#f9c9a6"/>
+      <!-- Subtle cheek blush -->
+      <ellipse cx="34" cy="62" rx="7" ry="4" fill="#f08080" opacity="0.22"/>
+      <ellipse cx="66" cy="62" rx="7" ry="4" fill="#f08080" opacity="0.22"/>
+      <!-- Eyebrows – soft arched -->
+      <path d="M35 44 Q40 40 45 43" stroke="#4a2c0a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M55 43 Q60 40 65 44" stroke="#4a2c0a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <!-- Left eye -->
+      <ellipse cx="40" cy="52" rx="5.5" ry="4" fill="#fff"/>
+      <ellipse cx="40" cy="52" rx="3.5" ry="3.2" fill="#6b3a2a"/>
+      <ellipse cx="40" cy="52" rx="2" ry="2" fill="#1a0a00"/>
+      <ellipse cx="41.5" cy="50.5" rx="1" ry="1" fill="#fff" opacity="0.8"/>
+      <!-- Left eyelashes -->
+      <path d="M34.5 50 Q34 48 34.5 47" stroke="#4a2c0a" stroke-width="1" stroke-linecap="round" fill="none"/>
+      <path d="M45.5 50 Q46 48 45.5 47" stroke="#4a2c0a" stroke-width="1" stroke-linecap="round" fill="none"/>
+      <!-- Right eye -->
+      <ellipse cx="60" cy="52" rx="5.5" ry="4" fill="#fff"/>
+      <ellipse cx="60" cy="52" rx="3.5" ry="3.2" fill="#6b3a2a"/>
+      <ellipse cx="60" cy="52" rx="2" ry="2" fill="#1a0a00"/>
+      <ellipse cx="61.5" cy="50.5" rx="1" ry="1" fill="#fff" opacity="0.8"/>
+      <!-- Right eyelashes -->
+      <path d="M54.5 50 Q54 48 54.5 47" stroke="#4a2c0a" stroke-width="1" stroke-linecap="round" fill="none"/>
+      <path d="M65.5 50 Q66 48 65.5 47" stroke="#4a2c0a" stroke-width="1" stroke-linecap="round" fill="none"/>
+      <!-- Nose – gentle, small -->
+      <path d="M50 56 Q48 61 50 62 Q52 61 50 56" stroke="#d4896a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Mouth – warm friendly smile -->
+      <path d="M41 68 Q50 75 59 68" stroke="#c0644a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Lips -->
+      <path d="M43 67.5 Q50 72 57 67.5" fill="#e88070" opacity="0.7"/>
+      <!-- Clothing – purple top matching brand -->
+      <path d="M28 88 Q28 80 50 78 Q72 80 72 88 L72 100 L28 100 Z" fill="#6c5ce7"/>
+      <!-- Collar detail -->
+      <path d="M44 78 Q50 82 56 78" stroke="#a29bfe" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="chat-container">
+
+  <div class="chat-header">
+    <div class="ila-bubble" style="width:42px;height:42px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" aria-label="ILA avatar" role="img">
+        <use href="#ila-avatar"/>
+      </svg>
+    </div>
+    <div>
+      <h1>ILA</h1>
+      <p>Asistente de movilidad · En línea</p>
+    </div>
+  </div>
+
+  <div class="chat-messages">
+
+    <div class="ila-row">
+      <div class="ila-bubble">
+        <!-- ILA avatar SVG – young woman ~25 years, sweet & trustworthy face -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" aria-label="ILA avatar" role="img">
+          <use href="#ila-avatar"/>
+        </svg>
+      </div>
+      <div class="ila-message">¡Hola! Soy ILA, tu asistente de movilidad. ¿En qué puedo ayudarte hoy? 😊</div>
+    </div>
+
+    <div class="user-row">
+      <div class="user-message">¿Qué líneas de autobús hay en el centro?</div>
+    </div>
+
+    <div class="ila-row">
+      <div class="ila-bubble">
+        <!-- ILA avatar SVG – young woman ~25 years, sweet & trustworthy face -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" aria-label="ILA avatar" role="img">
+          <use href="#ila-avatar"/>
+        </svg>
+      </div>
+      <div class="ila-message">En el centro puedes encontrar las líneas 1, 3, 7 y 12. Todas pasan por la Plaza Mayor cada 10 minutos.</div>
+    </div>
+
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" placeholder="Escribe tu pregunta…" aria-label="Escribe tu pregunta" />
+    <button aria-label="Enviar">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulando – Compra, Vende &amp; Trueca</title>
+  <style>
+    /* ===== RESET &amp; BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:   #2563eb;
+      --secondary: #f59e0b;
+      --premium:   #7c3aed;
+      --danger:    #dc2626;
+      --success:   #16a34a;
+      --gray-50:   #f9fafb;
+      --gray-100:  #f3f4f6;
+      --gray-200:  #e5e7eb;
+      --gray-400:  #9ca3af;
+      --gray-600:  #4b5563;
+      --gray-800:  #1f2937;
+      --white:     #ffffff;
+      --shadow:    0 1px 4px rgba(0,0,0,.12);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.15);
+      /* Card dimensions ~3.5 × 2 cm at 96 dpi */
+      --card-w: 132px;
+      --card-h: 75px;
+      --card-img-h: 36px; /* slightly reduced image area */
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: var(--white);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 52px;
+    }
+    .logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); letter-spacing: -0.5px; }
+    .logo span { color: var(--secondary); }
+
+    /* Mode toggle */
+    .mode-toggle {
+      display: flex;
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-left: 8px;
+    }
+    .mode-toggle button {
+      border: none;
+      background: transparent;
+      padding: 4px 14px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      color: var(--primary);
+    }
+    .mode-toggle button.active { background: var(--primary); color: var(--white); }
+
+    /* Search */
+    .search-wrap { flex: 1; max-width: 320px; }
+    .search-wrap input {
+      width: 100%;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: .85rem;
+      outline: none;
+    }
+    .search-wrap input:focus { border-color: var(--primary); }
+
+    /* Auth buttons */
+    .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .btn {
+      border: none; cursor: pointer; border-radius: 8px;
+      font-weight: 600; font-size: .8rem; padding: 6px 14px;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+    .btn-secondary { background: var(--secondary); color: var(--white); }
+    .btn-success { background: var(--success); color: var(--white); }
+    .btn-danger  { background: var(--danger); color: var(--white); }
+    #publishBtn { background: var(--secondary); color: var(--white); font-size: .8rem; }
+
+    /* ===== CATEGORY NAV ===== */
+    .cat-nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .cat-nav::-webkit-scrollbar { height: 3px; }
+    .cat-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 12px;
+      display: flex;
+      gap: 4px;
+    }
+    .cat-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      font-size: .8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--gray-600);
+      transition: color .2s, border-color .2s;
+      white-space: nowrap;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .cat-btn .cat-icon { font-size: .95rem; }
+
+    /* ===== MAIN LAYOUT ===== */
+    .main-wrap { max-width: 1100px; margin: 0 auto; padding: 12px; }
+
+    /* ===== TICKER / BANNERS ===== */
+    .ticker-wrap {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 7px 0;
+      margin-bottom: 14px;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 60px;
+      animation: ticker 30s linear infinite;
+      width: max-content;
+    }
+    .ticker-track span { color: var(--white); font-size: .82rem; font-weight: 600; white-space: nowrap; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    .banner {
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .85rem;
+      font-weight: 600;
+    }
+    .banner-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .banner-promo { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .banner-trueque { background: #ede9fe; color: #4c1d95; border: 1px solid #ddd6fe; }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .section-title h2 { font-size: .95rem; font-weight: 700; }
+    .section-title .badge-featured {
+      background: var(--premium);
+      color: var(--white);
+      font-size: .68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ===== CARD GRID ===== */
+    .card-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* ===== ARTICLE CARD (~3.5 × 2 cm) ===== */
+    .card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: var(--white);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow .2s, transform .15s;
+      flex-shrink: 0;
+    }
+    .card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+    /* Crown badge (premium) */
+    .card-crown {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: rgba(0,0,0,.55);
+      border-radius: 4px;
+      padding: 1px 4px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .card-crown .crown-icon { font-size: .65rem; line-height: 1; }
+    .card-crown .crown-label {
+      font-size: .55rem;
+      font-weight: 700;
+      color: #fcd34d;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    /* Image area */
+    .card-img {
+      width: 100%;
+      height: var(--card-img-h);
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Info area (the rest of the card height) */
+    .card-info {
+      flex: 1;
+      padding: 3px 5px 3px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: .67rem;
+      font-weight: 700;
+      line-height: 1.2;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      color: var(--gray-800);
+    }
+    .card-price {
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 1px;
+    }
+    .card-meta {
+      font-size: .58rem;
+      color: var(--gray-400);
+      margin-top: auto;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      overflow: hidden;
+    }
+    .card-meta span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-mode-badge {
+      font-size: .55rem;
+      font-weight: 700;
+      border-radius: 3px;
+      padding: 1px 3px;
+      flex-shrink: 0;
+    }
+    .badge-compra { background: #dbeafe; color: #1d4ed8; }
+    .badge-trueque { background: #ede9fe; color: #6d28d9; }
+
+    /* ===== CATEGORY SECTION ===== */
+    .cat-section { margin-bottom: 18px; }
+    .cat-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .cat-section-header h3 { font-size: .88rem; font-weight: 700; }
+    .cat-section-header .cat-icon-lg { font-size: 1.1rem; }
+    .cat-count { font-size: .75rem; color: var(--gray-400); }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-400);
+    }
+    .empty-state .empty-icon { font-size: 3rem; }
+    .empty-state p { margin-top: 8px; font-size: .9rem; }
+
+    /* ===== MODALS ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-md);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .modal-header h3 { font-size: 1rem; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--gray-400); }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid var(--gray-200); display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* Form fields */
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 4px; color: var(--gray-600); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: .85rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--primary); }
+    .form-group textarea { resize: vertical; min-height: 72px; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    .form-hint { font-size: .73rem; color: var(--gray-400); margin-top: 3px; }
+    .form-error { font-size: .73rem; color: var(--danger); margin-top: 3px; }
+
+    /* Registration steps */
+    .reg-steps {
+      display: flex;
+      gap: 0;
+      margin-bottom: 18px;
+    }
+    .reg-step {
+      flex: 1;
+      text-align: center;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 6px 4px;
+      border-bottom: 3px solid var(--gray-200);
+      color: var(--gray-400);
+    }
+    .reg-step.active { border-bottom-color: var(--primary); color: var(--primary); }
+    .reg-step.done  { border-bottom-color: var(--success); color: var(--success); }
+
+    /* Image URL list */
+    .img-url-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .img-url-row { display: flex; gap: 6px; align-items: center; }
+    .img-url-row input { flex: 1; }
+    .img-url-row button { flex-shrink: 0; background: none; border: 1.5px solid var(--danger); color: var(--danger); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: .9rem; }
+    .add-img-btn { font-size: .78rem; color: var(--primary); background: none; border: 1.5px dashed var(--primary); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+
+    /* ===== VENDOR PROFILE / CHAT ===== */
+    .vendor-profile { padding: 4px 0 8px; }
+    .vendor-info { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .vendor-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--gray-200);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 700; color: var(--gray-400);
+      flex-shrink: 0;
+    }
+    .vendor-avatar.premium { border: 2px solid var(--premium); }
+    .vendor-details h4 { font-size: .95rem; font-weight: 700; }
+    .vendor-details p { font-size: .78rem; color: var(--gray-400); margin-top: 2px; }
+    .vendor-premium-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--premium); color: white;
+      font-size: .65rem; font-weight: 700;
+      border-radius: 20px; padding: 2px 8px; margin-top: 4px;
+    }
+    .article-preview {
+      display: flex; gap: 10px; align-items: center;
+      background: var(--gray-50); border-radius: 8px; padding: 8px; margin-bottom: 14px;
+    }
+    .article-preview-img {
+      width: 52px; height: 40px; border-radius: 6px;
+      background: var(--gray-200); object-fit: cover; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .article-preview-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+    .article-preview-info .title { font-size: .82rem; font-weight: 700; }
+    .article-preview-info .price { font-size: .8rem; color: var(--primary); font-weight: 800; margin-top: 2px; }
+
+    /* Chat */
+    .chat-area {
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .chat-messages {
+      min-height: 90px; max-height: 200px; overflow-y: auto;
+      padding: 10px;
+      display: flex; flex-direction: column; gap: 7px;
+      background: var(--gray-50);
+    }
+    .chat-msg {
+      max-width: 80%; padding: 6px 10px; border-radius: 8px;
+      font-size: .8rem; line-height: 1.35;
+    }
+    .chat-msg.sent { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .chat-msg.recv { background: var(--white); color: var(--gray-800); align-self: flex-start; border: 1px solid var(--gray-200); border-bottom-left-radius: 2px; }
+    .chat-msg .msg-time { font-size: .6rem; opacity: .65; margin-top: 2px; text-align: right; }
+    .chat-input-row {
+      display: flex; gap: 0;
+      border-top: 1.5px solid var(--gray-200);
+    }
+    .chat-input-row input {
+      flex: 1; border: none; padding: 8px 10px; font-size: .83rem;
+      outline: none; font-family: inherit;
+    }
+    .chat-input-row button {
+      background: var(--primary); color: white;
+      border: none; padding: 8px 14px; cursor: pointer;
+      font-size: .8rem; font-weight: 600;
+    }
+    .chat-gated-notice {
+      background: #fef3c7; color: #92400e;
+      border: 1px solid #fde68a;
+      border-radius: 8px; padding: 8px 12px;
+      font-size: .78rem; margin-bottom: 8px;
+      display: flex; gap: 6px; align-items: flex-start;
+    }
+
+    /* ===== TOAST ===== */
+    #toast-container {
+      position: fixed; bottom: 20px; right: 20px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 9999;
+    }
+    .toast {
+      background: var(--gray-800); color: white;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: .83rem; box-shadow: var(--shadow-md);
+      animation: slideIn .3s ease;
+      max-width: 280px;
+    }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.info { background: var(--primary); }
+    @keyframes slideIn { from { transform: translateX(60px); opacity:0; } to { transform: none; opacity:1; } }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      :root { --card-w: 120px; --card-h: 68px; --card-img-h: 32px; }
+      .header-inner { gap: 8px; }
+      .search-wrap { max-width: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-inner">
+    <div class="logo">Circu<span>lando</span></div>
+
+    <div class="mode-toggle">
+      <button id="btnModeCompra" class="active" onclick="setMode('compra')">Compra/Venta</button>
+      <button id="btnModeTrueque" onclick="setMode('trueque')">Trueque</button>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Buscar artículos…" oninput="renderFeed()" />
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="openLoginModal()" id="btnLogin">Entrar</button>
+      <button class="btn btn-primary" onclick="openRegisterModal()" id="btnRegister">Registro</button>
+      <button class="btn" id="publishBtn" onclick="openPublishModal()" style="display:none">+ Publicar</button>
+      <button class="btn btn-outline" id="btnLogout" style="display:none" onclick="logout()">Salir</button>
+      <span id="userGreeting" style="font-size:.8rem;font-weight:600;color:var(--primary);display:none"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== CATEGORY NAV ===== -->
+<nav class="cat-nav" id="catNav"></nav>
+
+<!-- ===== MAIN FEED ===== -->
+<main class="main-wrap" id="feedContainer"></main>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Iniciar sesión</h3>
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <div id="loginError" class="form-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('loginModal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REGISTER MODAL (2 steps) ===== -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Crear cuenta</h3>
+      <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="reg-steps">
+        <div class="reg-step active" id="regStep1Ind">1. Acceso</div>
+        <div class="reg-step" id="regStep2Ind">2. Perfil</div>
+      </div>
+      <!-- Step 1 -->
+      <div id="regStep1">
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" id="regName" placeholder="Ana García" />
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="regEmail" placeholder="tu@email.com" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contraseña *</label>
+            <input type="password" id="regPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Repetir contraseña *</label>
+            <input type="password" id="regPassword2" placeholder="••••••••" />
+          </div>
+        </div>
+        <div id="regStep1Error" class="form-error"></div>
+      </div>
+      <!-- Step 2 -->
+      <div id="regStep2" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Teléfono de contacto</label>
+            <input type="tel" id="regPhone" placeholder="+34 600 000 000" />
+          </div>
+          <div class="form-group">
+            <label>Código postal *</label>
+            <input type="text" id="regPostal" placeholder="28001" maxlength="10" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Provincia / Región</label>
+            <input type="text" id="regRegion" placeholder="Madrid" />
+          </div>
+          <div class="form-group">
+            <label>País</label>
+            <input type="text" id="regCountry" placeholder="España" value="España" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dirección (opcional)</label>
+          <input type="text" id="regAddress" placeholder="Calle Mayor 1" />
+        </div>
+        <div class="form-group">
+          <label>Tipo de cuenta</label>
+          <select id="regAccountType">
+            <option value="standard">Estándar (gratuita)</option>
+            <option value="premium">Premium (vendedor destacado)</option>
+          </select>
+          <div class="form-hint">Las cuentas Premium aparecen en las primeras filas del feed.</div>
+        </div>
+        <div class="form-group">
+          <label>Breve descripción / bio</label>
+          <textarea id="regBio" placeholder="Cuéntanos algo sobre ti…" rows="2"></textarea>
+        </div>
+        <div id="regStep2Error" class="form-error"></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="regFooter">
+      <button class="btn btn-outline" onclick="closeModal('registerModal')">Cancelar</button>
+      <button class="btn btn-primary" id="regNextBtn" onclick="regNextStep()">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PUBLISH MODAL ===== -->
+<div class="modal-overlay" id="publishModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Publicar artículo</h3>
+      <button class="modal-close" onclick="closeModal('publishModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" id="pubTitle" placeholder="Ej: iPhone 14 Pro 256 GB" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Modo *</label>
+          <select id="pubMode">
+            <option value="compra">Compra / Venta</option>
+            <option value="trueque">Trueque</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Categoría *</label>
+          <select id="pubCategory" onchange="onPubCategoryChange()"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Precio (€) — deja 0 si es trueque</label>
+        <input type="number" id="pubPrice" value="0" min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="pubDesc" placeholder="Estado, características…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Imágenes (URLs) * — mínimo 1, máximo 10</label>
+        <div class="img-url-list" id="imgUrlList"></div>
+        <button type="button" class="add-img-btn" onclick="addImgUrlField()">+ Añadir imagen</button>
+        <div class="form-hint">Introduce URLs válidas (http/https) de imágenes del artículo.</div>
+        <div id="pubImgError" class="form-error"></div>
+      </div>
+      <div id="pubError" class="form-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('publishModal')">Cancelar</button>
+      <button class="btn btn-secondary" onclick="doPublish()">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VENDOR / ARTICLE DETAIL MODAL ===== -->
+<div class="modal-overlay" id="vendorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Perfil del vendedor</h3>
+      <button class="modal-close" onclick="closeModal('vendorModal')">✕</button>
+    </div>
+    <div class="modal-body" id="vendorModalBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CIRCULANDO – main script
+   ============================================================ */
+
+// ── State ──────────────────────────────────────────────────
+let currentMode = 'compra';
+let selectedCategory = 'all';
+let currentUser = null;  // { id, name, email, phone, postal, region, country, address, bio, accountType, isPremium }
+let listings = [];       // all published articles
+let chatStore = {};      // { listingId: { messages: [], gated: bool } }
+
+/* ============================================================
+   TRUEQUE CONFIG
+   Only cars + motorcycles are allowed for direct exchange.
+   ============================================================ */
+const TRUEQUE_ALLOWED = new Set(['cars', 'motorcycles']);
+
+function isAllowedInTrueque(product) {
+  return TRUEQUE_ALLOWED.has(product.category || '');
+}
+function isAllowedInCurrentMode(product) {
+  if (currentMode !== 'trueque') return true;
+  return isAllowedInTrueque(product);
+}
+function filterProductsForMode(products) {
+  return products.filter(isAllowedInCurrentMode);
+}
+
+/* ============================================================
+   CATEGORIES
+   ============================================================ */
+const ALL_CATEGORIES = [
+  { id: 'all',        label: 'Todo',            icon: '🏠' },
+  { id: 'cars',       label: 'Coches',          icon: '🚗' },
+  { id: 'motorcycles',label: 'Motos',           icon: '🏍️' },
+  { id: 'mobiles',    label: 'Móviles',         icon: '📱' },
+  { id: 'electronics',label: 'Electrónica',     icon: '💻' },
+  { id: 'home',       label: 'Hogar',           icon: '🛋️' },
+  { id: 'fashion',    label: 'Moda',            icon: '👗' },
+  { id: 'sports',     label: 'Deporte',         icon: '⚽' },
+  { id: 'books',      label: 'Libros',          icon: '📚' },
+  { id: 'music',      label: 'Música',          icon: '🎸' },
+  { id: 'consoles',   label: 'Videojuegos',     icon: '🎮' },
+  { id: 'bicycles',   label: 'Bicicletas',      icon: '🚲' },
+  { id: 'others',     label: 'Otros',           icon: '📦' },
+  // compra/venta only
+  { id: 'real_estate',label: 'Inmobiliaria',    icon: '🏢', noTrueque: true },
+  { id: 'jobs',       label: 'Empleo',          icon: '💼', noTrueque: true },
+  { id: 'services',   label: 'Servicios',       icon: '🔧', noTrueque: true },
+];
+
+function categoriesForMode() {
+  if (currentMode === 'trueque') {
+    return ALL_CATEGORIES.filter(c => c.id === 'all' || TRUEQUE_ALLOWED.has(c.id));
+  }
+  return ALL_CATEGORIES;
+}
+
+/* ============================================================
+   DEMO DATA (seeded on first load)
+   ============================================================ */
+const DEMO_USERS = [
+  { id: 'u1', name: 'Carlos Ruiz',    email: 'carlos@demo.com', password: 'demo123', phone: '+34 612 111 111', postal: '28001', region: 'Madrid',    country: 'España', address: 'C/ Gran Vía 1',   bio: 'Vendo artículos de calidad', accountType: 'premium', isPremium: true  },
+  { id: 'u2', name: 'María López',    email: 'maria@demo.com',  password: 'demo123', phone: '+34 623 222 222', postal: '08001', region: 'Barcelona', country: 'España', address: 'Passeig Gràcia 2', bio: 'Coleccionista',            accountType: 'premium', isPremium: true  },
+  { id: 'u3', name: 'Juan García',    email: 'juan@demo.com',   password: 'demo123', phone: '+34 634 333 333', postal: '46001', region: 'Valencia',  country: 'España', address: 'C/ Colón 3',       bio: 'Segunda mano sin trampas', accountType: 'standard',isPremium: false },
+  { id: 'u4', name: 'Ana Martínez',   email: 'ana@demo.com',    password: 'demo123', phone: '+34 645 444 444', postal: '41001', region: 'Sevilla',   country: 'España', address: 'Av. Constitución 4',bio:'Bricolaje y hogar',         accountType: 'premium', isPremium: true  },
+  { id: 'u5', name: 'Pedro Sánchez',  email: 'pedro@demo.com',  password: 'demo123', phone: '+34 656 555 555', postal: '50001', region: 'Zaragoza',  country: 'España', address: 'C/ Alfonso I 5',   bio: 'Aficionado al motor',      accountType: 'standard',isPremium: false },
+];
+
+const PLACEHOLDER = 'https://placehold.co/300x200/e5e7eb/9ca3af?text=';
+
+const DEMO_LISTINGS = [
+  // ── PREMIUM (u1, u2, u4) ──
+  { id: 'l01', userId: 'u1', mode: 'compra', category: 'cars',      title: 'Audi A4 2020 Automático',       price: 28000, desc: 'Como nuevo, 25.000 km', imageUrls: ['https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=300&h=200&fit=crop'] },
+  { id: 'l02', userId: 'u2', mode: 'compra', category: 'electronics',title: 'MacBook Pro M3 14"',            price: 1999,  desc: '16 GB RAM, 512 GB SSD',  imageUrls: ['https://images.unsplash.com/photo-1611186871525-ac5d6699b2b7?w=300&h=200&fit=crop'] },
+  { id: 'l03', userId: 'u4', mode: 'compra', category: 'home',       title: 'Sofá esquinero 3 plazas',      price: 650,   desc: 'Tela gris, poco uso',    imageUrls: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=200&fit=crop'] },
+  { id: 'l04', userId: 'u1', mode: 'compra', category: 'mobiles',    title: 'iPhone 14 Pro 256 GB',         price: 780,   desc: 'Batería al 95%',         imageUrls: ['https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=300&h=200&fit=crop'] },
+  { id: 'l05', userId: 'u2', mode: 'compra', category: 'fashion',    title: 'Bolso Louis Vuitton Neverfull', price: 420,   desc: 'Original, con caja',     imageUrls: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&h=200&fit=crop'] },
+  { id: 'l06', userId: 'u4', mode: 'compra', category: 'motorcycles','title': 'Honda CB500F 2022',          price: 6200,  desc: '8.000 km, perfecta',     imageUrls: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop'] },
+  // ── STANDARD (u3, u5) ──
+  { id: 'l07', userId: 'u3', mode: 'compra', category: 'books',      title: 'Colección Harry Potter',       price: 45,    desc: '7 tomos tapa dura',      imageUrls: ['https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=300&h=200&fit=crop'] },
+  { id: 'l08', userId: 'u5', mode: 'compra', category: 'sports',     title: 'Bicicleta MTB Orbea 29"',      price: 890,   desc: 'Talla M, frenos hidráulicos', imageUrls: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop'] },
+  { id: 'l09', userId: 'u3', mode: 'compra', category: 'consoles',   title: 'PlayStation 5 + 2 mandos',     price: 480,   desc: 'Con juegos incluidos',   imageUrls: ['https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=300&h=200&fit=crop'] },
+  { id: 'l10', userId: 'u5', mode: 'compra', category: 'music',      title: 'Guitarra Fender Stratocaster', price: 750,   desc: 'USA 2019, funda incluida', imageUrls: ['https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&h=200&fit=crop'] },
+  { id: 'l11', userId: 'u3', mode: 'compra', category: 'real_estate','title': 'Piso céntrico 2 hab Madrid', price: 175000,desc: '65 m², reformado',        imageUrls: [PLACEHOLDER + 'Inmobiliaria'] },
+  { id: 'l12', userId: 'u5', mode: 'compra', category: 'services',   title: 'Clases de guitarra a domicilio',price: 30,   desc: 'Por hora, Madrid',       imageUrls: [PLACEHOLDER + 'Servicios'] },
+  // ── TRUEQUE ──
+  { id: 'l13', userId: 'u1', mode: 'trueque', category: 'cars',       title: 'Ford Focus por coche familiar',price: 0,   desc: 'Busco monovolumen',       imageUrls: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=300&h=200&fit=crop'] },
+  { id: 'l14', userId: 'u2', mode: 'trueque', category: 'motorcycles','title': 'Yamaha MT-07 por moto trail',price: 0,   desc: 'Año 2021',               imageUrls: ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop'] },
+  { id: 'l15', userId: 'u4', mode: 'trueque', category: 'cars',       title: 'Seat Ibiza por Polo',          price: 0,   desc: 'Mismo rango precio',      imageUrls: ['https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&h=200&fit=crop'] },
+];
+
+/* ============================================================
+   PREMIUM ROTATION (every 1 hour)
+   ============================================================ */
+let premiumRotationOffset = 0;
+
+function getPremiumListings() {
+  return listings.filter(l => {
+    const user = DEMO_USERS.find(u => u.id === l.userId);
+    return user && user.isPremium && l.mode === currentMode;
+  });
+}
+
+function getRotatedPremium() {
+  let pl = getPremiumListings();
+  if (!pl.length) return [];
+  const off = premiumRotationOffset % pl.length;
+  return [...pl.slice(off), ...pl.slice(0, off)];
+}
+
+// Rotate offset every hour
+setInterval(() => {
+  premiumRotationOffset++;
+  renderFeed();
+}, 3600000);
+
+/* ============================================================
+   IMAGE URL VALIDATION
+   ============================================================ */
+function isValidUrl(str) {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch { return false; }
+}
+
+function validateImageUrls(urls) {
+  if (!urls || urls.length < 1)  return { ok: false, error: 'Debes añadir al menos 1 imagen.' };
+  if (urls.length > 10)          return { ok: false, error: 'Máximo 10 imágenes por artículo.' };
+  for (const u of urls) {
+    if (!isValidUrl(u)) return { ok: false, error: `URL inválida: "${u}". Usa http:// o https://` };
+  }
+  return { ok: true, error: '' };
+}
+
+/* ============================================================
+   MODE
+   ============================================================ */
+function setMode(mode) {
+  currentMode = mode;
+  selectedCategory = 'all';
+  document.getElementById('btnModeCompra').classList.toggle('active', mode === 'compra');
+  document.getElementById('btnModeTrueque').classList.toggle('active', mode === 'trueque');
+  renderCatNav();
+  renderFeed();
+}
+
+/* ============================================================
+   CATEGORY NAV
+   ============================================================ */
+function renderCatNav() {
+  const cats = categoriesForMode();
+  const nav = document.getElementById('catNav');
+  nav.innerHTML = '<div class="cat-nav-inner">' +
+    cats.map(c => `<button class="cat-btn${c.id === selectedCategory ? ' active' : ''}" onclick="selectCategory('${c.id}')">
+      <span class="cat-icon">${c.icon}</span>${c.label}
+    </button>`).join('') +
+  '</div>';
+}
+
+function selectCategory(id) {
+  selectedCategory = id;
+  renderCatNav();
+  renderFeed();
+}
+
+/* ============================================================
+   TICKER MESSAGES
+   ============================================================ */
+const TICKER_MSGS = [
+  '🚀 ¡Publica gratis y llega a miles de compradores!',
+  '⭐ Los usuarios Premium aparecen en las primeras filas',
+  '🔄 ¡Trueca tu coche o moto por otro vehículo!',
+  '📦 Miles de artículos nuevos cada día',
+  '💬 Contacta directamente con el vendedor desde la tarjeta',
+  '🎯 Encuentra lo que buscas por categorías',
+  '🏆 ¡Regístrate ahora y empieza a vender!',
+];
+
+function buildTicker() {
+  const msgs = [...TICKER_MSGS, ...TICKER_MSGS]; // duplicate for infinite loop
+  return `<div class="ticker-wrap"><div class="ticker-track">${msgs.map(m => `<span>${m}</span>`).join('')}</div></div>`;
+}
+
+const BANNERS = {
+  compra: [
+    { cls: 'banner-info',  icon: '💡', text: '¡Más de 10.000 artículos disponibles hoy! ¿Buscas algo especial?' },
+    { cls: 'banner-promo', icon: '🎁', text: '¡Los vendedores Premium ofrecen garantía y envío rápido!' },
+    { cls: 'banner-info',  icon: '🔍', text: 'Filtra por categoría para encontrar lo que necesitas más rápido.' },
+  ],
+  trueque: [
+    { cls: 'banner-trueque', icon: '🔄', text: 'En modo Trueque solo coches y motos. ¡Intercambia tu vehículo!' },
+    { cls: 'banner-trueque', icon: '🤝', text: 'Contacta con el vendedor y propón tu intercambio desde la tarjeta.' },
+  ],
+};
+
+function buildBanner(idx) {
+  const list = BANNERS[currentMode] || BANNERS.compra;
+  const b = list[idx % list.length];
+  return `<div class="banner ${b.cls}">${b.icon} ${b.text}</div>`;
+}
+
+/* ============================================================
+   CARD RENDERER
+   ============================================================ */
+function getUserById(id) { return DEMO_USERS.find(u => u.id === id) || null; }
+
+function buildCard(listing, premium = false) {
+  const user = getUserById(listing.userId);
+  const isPremUser = user && user.isPremium;
+  const imgUrl = listing.imageUrls && listing.imageUrls[0];
+  const imgHtml = imgUrl
+    ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(listing.title)}" onerror="this.parentElement.innerHTML='📷'" />`
+    : listing.category ? (getCatIcon(listing.category) || '📷') : '📷';
+
+  const priceLabel = listing.mode === 'trueque' ? 'Trueque' : (listing.price > 0 ? listing.price.toLocaleString('es-ES') + ' €' : 'Gratis');
+  const modeBadge  = listing.mode === 'trueque' ? '<span class="card-mode-badge badge-trueque">Trueque</span>' : '';
+
+  const crownHtml = (premium && isPremUser)
+    ? `<div class="card-crown"><span class="crown-icon">👑</span><span class="crown-label">Destacados</span></div>`
+    : '';
+
+  return `<div class="card" onclick="openVendorModal('${listing.id}')" title="${escHtml(listing.title)}">
+    ${crownHtml}
+    <div class="card-img">${imgHtml}</div>
+    <div class="card-info">
+      <div class="card-title">${escHtml(listing.title)}</div>
+      <div class="card-price">${escHtml(priceLabel)}</div>
+      <div class="card-meta">${modeBadge}<span>${escHtml(user ? user.name : 'Desconocido')}</span></div>
+    </div>
+  </div>`;
+}
+
+function getCatIcon(id) { return (ALL_CATEGORIES.find(c => c.id === id) || {}).icon || '📦'; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ============================================================
+   MAIN FEED RENDERER
+   ============================================================ */
+function renderFeed() {
+  const container = document.getElementById('feedContainer');
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  let html = '';
+
+  // All listings filtered by mode and search
+  const baseRaw = listings.filter(l => l.mode === currentMode);
+  const base = filterProductsForMode(baseRaw).filter(l =>
+    !query || l.title.toLowerCase().includes(query) || (l.desc || '').toLowerCase().includes(query)
+  );
+
+  // ── SECTION 1: Ticker ──
+  html += buildTicker();
+
+  // ── SECTION 2: Destacados (first 2 rows, premium only) ──
+  const premiumAll = getRotatedPremium().filter(l =>
+    !query || l.title.toLowerCase().includes(query) || (l.desc || '').toLowerCase().includes(query)
+  );
+  if (premiumAll.length > 0 && selectedCategory === 'all') {
+    html += `<div class="section-title">
+      <h2>Destacados</h2>
+      <span class="badge-featured">👑 Premium</span>
+    </div>`;
+    // Show up to 2 rows (~8 cards per row at card-w=132px in 1100px container ≈ 8)
+    const cols = Math.floor((Math.min(window.innerWidth, 1100) - 24) / (132 + 8)) || 4;
+    const maxFeatured = cols * 2;
+    html += `<div class="card-grid">` + premiumAll.slice(0, maxFeatured).map(l => buildCard(l, true)).join('') + `</div>`;
+    html += buildBanner(0);
+  }
+
+  // ── SECTION 3: Categories with articles ──
+  if (selectedCategory !== 'all') {
+    // Single-category view
+    const filtered = base.filter(l => l.category === selectedCategory);
+    if (filtered.length === 0) {
+      html += emptyState(currentMode === 'trueque');
+    } else {
+      const cat = ALL_CATEGORIES.find(c => c.id === selectedCategory);
+      html += `<div class="cat-section">
+        <div class="cat-section-header">
+          <span class="cat-icon-lg">${cat ? cat.icon : '📦'}</span>
+          <h3>${cat ? escHtml(cat.label) : escHtml(selectedCategory)}</h3>
+          <span class="cat-count">${filtered.length} artículo${filtered.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="card-grid">${filtered.map(l => buildCard(l)).join('')}</div>
+      </div>`;
+    }
+  } else {
+    // All categories
+    const cats = categoriesForMode().filter(c => c.id !== 'all');
+    let bannerIdx = 1;
+    let anyCat = false;
+
+    for (const cat of cats) {
+      const items = base.filter(l => l.category === cat.id);
+      if (!items.length) continue;
+      anyCat = true;
+      html += `<div class="cat-section">
+        <div class="cat-section-header">
+          <span class="cat-icon-lg">${cat.icon}</span>
+          <h3>${escHtml(cat.label)}</h3>
+          <span class="cat-count">${items.length} artículo${items.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="card-grid">${items.map(l => buildCard(l)).join('')}</div>
+      </div>`;
+      // Intersperse banners every 2 categories
+      if (bannerIdx % 2 === 0) html += buildBanner(bannerIdx);
+      bannerIdx++;
+    }
+
+    if (!anyCat) html += emptyState(currentMode === 'trueque');
+  }
+
+  container.innerHTML = html;
+}
+
+function emptyState(isTrueque) {
+  const msg = isTrueque
+    ? 'En Trueque solo se muestran coches y motos. ¡Publica tu vehículo para intercambiar!'
+    : 'No hay artículos en esta categoría. ¡Sé el primero en publicar!';
+  return `<div class="empty-state"><div class="empty-icon">${isTrueque ? '🔄' : '📦'}</div><p>${msg}</p></div>`;
+}
+
+/* ============================================================
+   VENDOR / ARTICLE DETAIL MODAL + CHAT
+   ============================================================ */
+function openVendorModal(listingId) {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return;
+  const user = getUserById(listing.userId);
+
+  // Init chat store
+  if (!chatStore[listingId]) chatStore[listingId] = { messages: [], awaitingResponse: false };
+  const chat = chatStore[listingId];
+
+  const imgUrl = listing.imageUrls && listing.imageUrls[0];
+  const imgHtml = imgUrl
+    ? `<img src="${escHtml(imgUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.innerText='📷'" />`
+    : getCatIcon(listing.category);
+  const priceLabel = listing.mode === 'trueque' ? 'Trueque' : (listing.price > 0 ? listing.price.toLocaleString('es-ES') + ' €' : 'Gratis');
+
+  let chatHtml = '';
+  if (!currentUser) {
+    chatHtml = `<div class="banner banner-info" style="margin-top:12px">💬 <a href="#" onclick="event.preventDefault();closeModal('vendorModal');openLoginModal()">Inicia sesión</a> para contactar con el vendedor.</div>`;
+  } else if (currentUser.id === listing.userId) {
+    chatHtml = `<div class="banner banner-info" style="margin-top:12px">Este es tu artículo.</div>`;
+  } else {
+    // Build chat messages HTML
+    const msgsHtml = chat.messages.map(m => `
+      <div class="chat-msg ${m.from === 'me' ? 'sent' : 'recv'}">
+        ${escHtml(m.text)}
+        <div class="msg-time">${m.time}</div>
+      </div>`).join('');
+
+    const gatedNotice = chat.awaitingResponse
+      ? `<div class="chat-gated-notice">⏳ Esperando la respuesta del vendedor antes de continuar la conversación.</div>`
+      : '';
+
+    const inputDisabled = chat.awaitingResponse ? 'disabled' : '';
+
+    chatHtml = `<div style="margin-top:12px">
+      <div style="font-size:.82rem;font-weight:700;color:var(--gray-600);margin-bottom:6px">💬 Mensaje al vendedor</div>
+      ${gatedNotice}
+      <div class="chat-area">
+        <div class="chat-messages" id="chatMsgs-${listingId}">
+          ${chat.messages.length === 0 ? '<div style="font-size:.75rem;color:var(--gray-400);text-align:center;padding:10px">Inicia la conversación…</div>' : msgsHtml}
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput-${listingId}" placeholder="Escribe un mensaje…" ${inputDisabled} onkeydown="if(event.key==='Enter')sendChat('${listingId}')" />
+          <button onclick="sendChat('${listingId}')" ${inputDisabled}>Enviar</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const premBadge = user && user.isPremium
+    ? `<div class="vendor-premium-badge">👑 Premium</div>`
+    : '';
+
+  document.getElementById('vendorModalBody').innerHTML = `
+    <div class="vendor-profile">
+      <div class="vendor-info">
+        <div class="vendor-avatar ${user && user.isPremium ? 'premium' : ''}">${user ? user.name[0].toUpperCase() : '?'}</div>
+        <div class="vendor-details">
+          <h4>${escHtml(user ? user.name : 'Vendedor desconocido')}</h4>
+          <p>${escHtml(user ? user.bio || '' : '')}</p>
+          ${premBadge}
+        </div>
+      </div>
+      <div class="article-preview">
+        <div class="article-preview-img">${imgHtml}</div>
+        <div class="article-preview-info">
+          <div class="title">${escHtml(listing.title)}</div>
+          <div class="price">${escHtml(priceLabel)}</div>
+          <div style="font-size:.72rem;color:var(--gray-400);margin-top:2px">${escHtml(listing.desc || '')}</div>
+        </div>
+      </div>
+      ${chatHtml}
+    </div>`;
+
+  openModal('vendorModal');
+}
+
+function sendChat(listingId) {
+  if (!currentUser) return;
+  const input = document.getElementById('chatInput-' + listingId);
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  const chat = chatStore[listingId];
+  if (chat.awaitingResponse) { showToast('Espera la respuesta del vendedor.', 'error'); return; }
+
+  // Add user message
+  chat.messages.push({ from: 'me', text, time: nowTime() });
+  chat.awaitingResponse = true;
+
+  // Simulate vendor auto-reply after 2s (demo only)
+  setTimeout(() => {
+    chat.messages.push({ from: 'vendor', text: '¡Hola! Gracias por tu interés. ¿Cuándo te viene bien?', time: nowTime() });
+    chat.awaitingResponse = false;
+    // Refresh modal if still open
+    if (document.getElementById('vendorModal').classList.contains('open')) {
+      openVendorModal(listingId);
+    }
+  }, 2000);
+
+  // Re-render modal
+  openVendorModal(listingId);
+}
+
+function nowTime() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+/* ============================================================
+   PUBLISH MODAL
+   ============================================================ */
+function openPublishModal() {
+  if (!currentUser) { openLoginModal(); return; }
+  // Populate category select
+  const sel = document.getElementById('pubCategory');
+  const mode = document.getElementById('pubMode').value;
+  populatePubCategories(mode);
+  // Set mode dropdown to current
+  document.getElementById('pubMode').value = currentMode;
+  onPubModeChange();
+  // Reset image fields
+  document.getElementById('imgUrlList').innerHTML = '';
+  document.getElementById('pubImgError').textContent = '';
+  document.getElementById('pubError').textContent = '';
+  addImgUrlField();
+  openModal('publishModal');
+}
+
+function onPubModeChange() {
+  const mode = document.getElementById('pubMode').value;
+  populatePubCategories(mode);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pubMode').addEventListener('change', onPubModeChange);
+});
+
+function onPubCategoryChange() {}
+
+function populatePubCategories(mode) {
+  const sel = document.getElementById('pubCategory');
+  const allowed = mode === 'trueque'
+    ? ALL_CATEGORIES.filter(c => c.id !== 'all' && TRUEQUE_ALLOWED.has(c.id))
+    : ALL_CATEGORIES.filter(c => c.id !== 'all');
+  sel.innerHTML = allowed.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+}
+
+function addImgUrlField() {
+  const list = document.getElementById('imgUrlList');
+  const count = list.children.length;
+  if (count >= 10) { showToast('Máximo 10 imágenes.', 'error'); return; }
+  const row = document.createElement('div');
+  row.className = 'img-url-row';
+  row.innerHTML = `<input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+    <button type="button" onclick="removeImgRow(this)" title="Eliminar">✕</button>`;
+  list.appendChild(row);
+}
+
+function removeImgRow(btn) {
+  btn.parentElement.remove();
+}
+
+function getImgUrls() {
+  return Array.from(document.querySelectorAll('#imgUrlList input'))
+    .map(i => i.value.trim())
+    .filter(Boolean);
+}
+
+function doPublish() {
+  const title = document.getElementById('pubTitle').value.trim();
+  const mode  = document.getElementById('pubMode').value;
+  const cat   = document.getElementById('pubCategory').value;
+  const price = parseFloat(document.getElementById('pubPrice').value) || 0;
+  const desc  = document.getElementById('pubDesc').value.trim();
+  const imageUrls = getImgUrls();
+
+  document.getElementById('pubError').textContent = '';
+  document.getElementById('pubImgError').textContent = '';
+
+  if (!title) { document.getElementById('pubError').textContent = 'El título es obligatorio.'; return; }
+
+  // Trueque category block (frontend)
+  if (mode === 'trueque' && !TRUEQUE_ALLOWED.has(cat)) {
+    document.getElementById('pubError').textContent = `La categoría "${cat}" no está permitida en Trueque. Solo coches y motos.`;
+    return;
+  }
+
+  // Image validation
+  const imgCheck = validateImageUrls(imageUrls);
+  if (!imgCheck.ok) { document.getElementById('pubImgError').textContent = imgCheck.error; return; }
+
+  const newListing = {
+    id: 'l' + Date.now(),
+    userId: currentUser.id,
+    mode, category: cat, title, price, desc, imageUrls,
+  };
+
+  listings.push(newListing);
+
+  // Also register user in DEMO_USERS if needed (for isPremium lookup)
+  if (!DEMO_USERS.find(u => u.id === currentUser.id)) DEMO_USERS.push(currentUser);
+
+  closeModal('publishModal');
+  showToast('¡Artículo publicado!', 'success');
+  renderFeed();
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+function openLoginModal()    { openModal('loginModal'); }
+function openRegisterModal() {
+  regCurrentStep = 1;
+  showRegStep(1);
+  openModal('registerModal');
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  const user  = DEMO_USERS.find(u => u.email === email && u.password === pass);
+  if (!user) { document.getElementById('loginError').textContent = 'Email o contraseña incorrectos.'; return; }
+  setCurrentUser(user);
+  closeModal('loginModal');
+  showToast('¡Bienvenido, ' + user.name + '!', 'success');
+}
+
+let regCurrentStep = 1;
+function showRegStep(step) {
+  document.getElementById('regStep1').style.display = step === 1 ? '' : 'none';
+  document.getElementById('regStep2').style.display = step === 2 ? '' : 'none';
+  document.getElementById('regStep1Ind').className = 'reg-step' + (step === 1 ? ' active' : step > 1 ? ' done' : '');
+  document.getElementById('regStep2Ind').className = 'reg-step' + (step === 2 ? ' active' : '');
+  document.getElementById('regNextBtn').textContent = step === 1 ? 'Siguiente →' : 'Crear cuenta';
+}
+
+function regNextStep() {
+  if (regCurrentStep === 1) {
+    const name  = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass  = document.getElementById('regPassword').value;
+    const pass2 = document.getElementById('regPassword2').value;
+    const err   = document.getElementById('regStep1Error');
+    if (!name)           { err.textContent = 'El nombre es obligatorio.'; return; }
+    if (!email)          { err.textContent = 'El email es obligatorio.'; return; }
+    if (!pass || pass.length < 6) { err.textContent = 'La contraseña debe tener mínimo 6 caracteres.'; return; }
+    if (pass !== pass2)  { err.textContent = 'Las contraseñas no coinciden.'; return; }
+    if (DEMO_USERS.find(u => u.email === email)) { err.textContent = 'Este email ya está registrado.'; return; }
+    err.textContent = '';
+    regCurrentStep = 2;
+    showRegStep(2);
+  } else {
+    const postal = document.getElementById('regPostal').value.trim();
+    const err    = document.getElementById('regStep2Error');
+    if (!postal) { err.textContent = 'El código postal es obligatorio.'; return; }
+    err.textContent = '';
+
+    const newUser = {
+      id:          'u' + Date.now(),
+      name:        document.getElementById('regName').value.trim(),
+      email:       document.getElementById('regEmail').value.trim(),
+      password:    document.getElementById('regPassword').value,
+      phone:       document.getElementById('regPhone').value.trim(),
+      postal:      postal,
+      region:      document.getElementById('regRegion').value.trim(),
+      country:     document.getElementById('regCountry').value.trim() || 'España',
+      address:     document.getElementById('regAddress').value.trim(),
+      bio:         document.getElementById('regBio').value.trim(),
+      accountType: document.getElementById('regAccountType').value,
+      isPremium:   document.getElementById('regAccountType').value === 'premium',
+    };
+    DEMO_USERS.push(newUser);
+    setCurrentUser(newUser);
+    closeModal('registerModal');
+    showToast('¡Cuenta creada! Bienvenido, ' + newUser.name + '!', 'success');
+  }
+}
+
+function setCurrentUser(user) {
+  currentUser = user;
+  document.getElementById('btnLogin').style.display    = 'none';
+  document.getElementById('btnRegister').style.display = 'none';
+  document.getElementById('publishBtn').style.display  = '';
+  document.getElementById('btnLogout').style.display   = '';
+  document.getElementById('userGreeting').style.display = '';
+  document.getElementById('userGreeting').textContent  = user.name;
+  renderFeed();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('btnLogin').style.display    = '';
+  document.getElementById('btnRegister').style.display = '';
+  document.getElementById('publishBtn').style.display  = 'none';
+  document.getElementById('btnLogout').style.display   = 'none';
+  document.getElementById('userGreeting').style.display = 'none';
+  showToast('Sesión cerrada.', 'info');
+  renderFeed();
+}
+
+/* ============================================================
+   MODAL HELPERS
+   ============================================================ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  listings = DEMO_LISTINGS.slice();
+  renderCatNav();
+  renderFeed();
+}
+
+init();
+</script>
+</body>
+</html>

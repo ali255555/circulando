@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circulando – Compra, Vende y Trueca</title>
+  <style>
+    /* ======================================================
+       RESET & BASE
+    ====================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:    #2563eb;
+      --primary-dk: #1d4ed8;
+      --accent:     #f59e0b;
+      --premium:    #7c3aed;
+      --success:    #10b981;
+      --danger:     #ef4444;
+      --bg:         #f3f4f6;
+      --card-bg:    #ffffff;
+      --text:       #111827;
+      --text-sm:    #6b7280;
+      --radius:     12px;
+      --shadow:     0 2px 8px rgba(0,0,0,.10);
+      --shadow-lg:  0 8px 24px rgba(0,0,0,.13);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    /* ======================================================
+       HEADER / NAV
+    ====================================================== */
+    header {
+      background: var(--primary);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 20px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .logo span { color: var(--accent); }
+    .search-bar {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      outline: none;
+      font-size: 0.95rem;
+    }
+    .search-bar input::placeholder { color: rgba(255,255,255,.65); }
+    .search-bar button {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      transition: background .2s;
+    }
+    .search-bar button:hover { background: #d97706; }
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: all .2s;
+    }
+    .btn-outline { border: 2px solid rgba(255,255,255,.6); color: #fff; }
+    .btn-outline:hover { background: rgba(255,255,255,.15); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: #d97706; }
+    .btn-chat {
+      background: var(--success);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-chat:hover { background: #059669; }
+
+    /* ======================================================
+       CATEGORY NAV BAR
+    ====================================================== */
+    .cat-nav {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .cat-nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      gap: 4px;
+      padding: 0 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .cat-nav-inner::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      padding: 10px 16px;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-sm);
+      border-bottom: 3px solid transparent;
+      transition: all .18s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn:hover { color: var(--primary); border-color: var(--primary); }
+    .cat-btn.active { color: var(--primary); border-color: var(--primary); }
+
+    /* ======================================================
+       TICKER / PROMO BANNER
+    ====================================================== */
+    .ticker-wrap {
+      background: linear-gradient(90deg, var(--primary), #7c3aed);
+      color: #fff;
+      overflow: hidden;
+      padding: 7px 0;
+    }
+    .ticker {
+      display: flex;
+      gap: 80px;
+      animation: ticker-scroll 28s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker:hover { animation-play-state: paused; }
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker span { font-size: 0.83rem; font-weight: 600; }
+    .ticker .dot { color: var(--accent); }
+
+    /* ======================================================
+       MAIN LAYOUT
+    ====================================================== */
+    main { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    .section-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ======================================================
+       FEATURED SECTION (DESTACADOS)
+    ====================================================== */
+    #featured-section { margin-bottom: 36px; }
+    .featured-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .featured-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(90deg, var(--premium), #9333ea);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .featured-label svg { width: 14px; height: 14px; fill: var(--accent); }
+    .featured-timer {
+      font-size: 0.78rem;
+      color: var(--text-sm);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #featured-countdown {
+      font-weight: 700;
+      color: var(--premium);
+    }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    /* ======================================================
+       ARTICLE CARD  (tarjeta de artículo)
+    ====================================================== */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform .22s, box-shadow .22s;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* image area – slightly reduced (40% of card height) */
+    .card-img-wrap {
+      width: 100%;
+      padding-top: 55%;   /* aspect-ratio: ~1.8:1  (was ~1:1 ≈ 100%) */
+      position: relative;
+      overflow: hidden;
+      background: #e5e7eb;
+    }
+    .card-img-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .35s;
+    }
+    .card:hover .card-img-wrap img { transform: scale(1.06); }
+
+    /* badge overlay on image */
+    .card-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--primary);
+      z-index: 2;
+    }
+    .card-badge.trueque { background: var(--success); }
+    .card-badge.premium {
+      background: linear-gradient(90deg, var(--premium), #9333ea);
+    }
+
+    /* premium crown – small, top-right corner */
+    .crown-corner {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      background: rgba(255,255,255,.92);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .crown-corner svg {
+      width: 13px;
+      height: 13px;
+      fill: var(--accent);
+    }
+
+    /* info area – enlarged */
+    .card-info {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-price {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .card-price.trueque-price { color: var(--success); }
+    .card-meta {
+      font-size: 0.75rem;
+      color: var(--text-sm);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .card-meta svg { width: 11px; height: 11px; fill: currentColor; }
+    .card-footer {
+      padding: 10px 14px;
+      border-top: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-contact {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: var(--primary);
+      color: #fff;
+      transition: background .18s;
+      text-align: center;
+    }
+    .btn-contact:hover { background: var(--primary-dk); }
+    .btn-chat-card {
+      padding: 7px 10px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #f3f4f6;
+      color: var(--primary);
+      transition: background .18s;
+    }
+    .btn-chat-card:hover { background: #e5e7eb; }
+
+    /* ======================================================
+       DYNAMIC CONTENT – CATEGORY ROWS
+    ====================================================== */
+    .dynamic-section { margin-bottom: 32px; }
+    .cat-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cat-row-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .see-all {
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .see-all:hover { text-decoration: underline; }
+    .cards-scroll {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+    /* animated entry */
+    .card.anim-in {
+      animation: fadeSlideUp .4s ease both;
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* promo message strip between rows */
+    .promo-strip {
+      margin: 16px 0;
+      padding: 14px 22px;
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: center;
+      animation: fadeSlideUp .5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .promo-strip span.icon { font-size: 1.3rem; }
+
+    /* ======================================================
+       PUBLISH / TRUEQUE MODAL
+    ====================================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: fadeSlideUp .25s ease;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.2rem; font-weight: 800; }
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: #e5e7eb; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: border-color .18s;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--primary); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      border: 2px solid #e5e7eb;
+      color: var(--text-sm);
+      transition: all .18s;
+    }
+    .mode-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(37,99,235,.06);
+    }
+    .mode-btn.trueque.active {
+      border-color: var(--success);
+      color: var(--success);
+      background: rgba(16,185,129,.06);
+    }
+    .trueque-info {
+      display: none;
+      padding: 10px 14px;
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      color: #065f46;
+      margin-bottom: 14px;
+    }
+    .trueque-info.show { display: block; }
+    .error-msg {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 5px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      background: var(--primary);
+      color: #fff;
+      transition: background .18s;
+    }
+    .btn-submit:hover { background: var(--primary-dk); }
+
+    /* ======================================================
+       CHAT PANEL
+    ====================================================== */
+    #chat-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 300; }
+    #chat-overlay.open { display: block; }
+
+    #chat-panel {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 360px;
+      height: 520px;
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 30px rgba(0,0,0,.15);
+      z-index: 301;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp .25s ease;
+    }
+    #chat-panel.open { display: flex; }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .chat-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-header h3 { flex: 1; font-size: 1rem; font-weight: 700; }
+    .chat-close {
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: #fff;
+    }
+    .chat-close:hover { background: rgba(255,255,255,.35); }
+    .chat-users {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chat-users-title { font-size: 0.78rem; font-weight: 700; color: var(--text-sm); }
+    .user-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .user-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      min-width: 52px;
+    }
+    .user-chip .avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
+      background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .user-chip.selected .avatar { border-color: var(--primary); }
+    .user-chip .uname {
+      font-size: 0.68rem;
+      color: var(--text-sm);
+      max-width: 52px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fafafa;
+    }
+    .msg {
+      max-width: 78%;
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+    .msg.received {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.sent {
+      background: var(--primary);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .msg .msg-meta {
+      font-size: 0.7rem;
+      opacity: .65;
+      margin-top: 3px;
+    }
+    .chat-compose {
+      padding: 10px 12px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .chat-compose input {
+      flex: 1;
+      padding: 9px 13px;
+      border: 2px solid #e5e7eb;
+      border-radius: 22px;
+      font-size: 0.88rem;
+      outline: none;
+    }
+    .chat-compose input:focus { border-color: var(--primary); }
+    .btn-send {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-send:hover { background: var(--primary-dk); }
+    .chat-postal-row {
+      padding: 6px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.78rem;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .chat-postal-row label { color: var(--text-sm); font-weight: 600; }
+    .chat-postal-row input {
+      width: 90px;
+      padding: 4px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    /* ======================================================
+       CHAT FAB (floating action button)
+    ====================================================== */
+    #chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(37,99,235,.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      z-index: 150;
+      transition: transform .2s;
+    }
+    #chat-fab:hover { transform: scale(1.1); }
+    #chat-fab .notif-dot {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 12px; height: 12px;
+      background: var(--danger);
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    /* ======================================================
+       FOOTER
+    ====================================================== */
+    footer {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 28px 20px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    footer strong { color: #fff; }
+
+    /* ======================================================
+       RESPONSIVE
+    ====================================================== */
+    @media (max-width: 600px) {
+      .header-inner { gap: 10px; }
+      .nav-actions .btn-outline { display: none; }
+      #chat-panel { width: 100%; border-radius: 16px 16px 0 0; }
+      .featured-grid,
+      .cards-scroll { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header>
+  <div class="header-inner">
+    <div class="logo">🔄 <span>Circulando</span></div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Busca artículos, coches, electrónica…" />
+      <button onclick="handleSearch()">Buscar</button>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-outline" onclick="openPublish('venta')">+ Publicar</button>
+      <button class="btn btn-accent" onclick="openPublish('trueque')">🔄 Trueca</button>
+      <button class="btn-chat" onclick="toggleChat()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     CATEGORY NAV
+============================================================ -->
+<nav class="cat-nav">
+  <div class="cat-nav-inner" id="cat-nav-inner"></div>
+</nav>
+
+<!-- ============================================================
+     TICKER
+============================================================ -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+<main>
+
+  <!-- FEATURED – DESTACADOS -->
+  <section id="featured-section">
+    <div class="featured-header">
+      <div class="featured-label">
+        <svg viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm0 2h14v2H5v-2z"/></svg>
+        Destacados
+      </div>
+      <div class="featured-timer">
+        🕐 Próxima rotación en <span id="featured-countdown">59:59</span>
+      </div>
+    </div>
+    <div class="featured-grid" id="featured-grid"></div>
+  </section>
+
+  <!-- DYNAMIC CATEGORY ROWS -->
+  <div id="dynamic-rows"></div>
+
+</main>
+
+<!-- ============================================================
+     PUBLISH MODAL
+============================================================ -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="publish-modal-title">Publicar artículo</h2>
+      <button class="modal-close" onclick="closePublish()">✕</button>
+    </div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-venta" onclick="setMode('venta')">💰 Venta</button>
+      <button class="mode-btn trueque" id="btn-mode-trueque" onclick="setMode('trueque')">🔄 Trueque</button>
+    </div>
+
+    <div class="trueque-info" id="trueque-info">
+      ✅ En modo trueque solo puedes intercambiar artículos de las categorías permitidas.
+    </div>
+
+    <form id="publish-form" onsubmit="handlePublish(event)">
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" id="f-title" placeholder="Ej. iPhone 14 Pro en perfecto estado" required />
+      </div>
+      <div class="form-group">
+        <label>Categoría *</label>
+        <select id="f-category" required onchange="validateTruequeCategory()">
+          <option value="">— Selecciona una categoría —</option>
+        </select>
+        <div class="error-msg" id="cat-error">
+          ⛔ Esta categoría no está permitida en modo trueque. Elige una categoría de intercambio válida.
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Precio / Valoración (€)</label>
+        <input type="number" id="f-price" placeholder="0 para trueque" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="f-desc" placeholder="Describe el artículo…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Código postal *</label>
+        <input type="text" id="f-postal" placeholder="Ej. 28001" required maxlength="5" />
+      </div>
+      <div class="form-group">
+        <label>URL de imagen (opcional)</label>
+        <input type="url" id="f-image" placeholder="https://…" />
+      </div>
+      <button class="btn-submit" type="submit">Publicar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+     CHAT PANEL
+============================================================ -->
+<div id="chat-overlay" onclick="toggleChat()"></div>
+<div id="chat-panel">
+  <div class="chat-header">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <h3>Chat Circulando</h3>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+
+  <div class="chat-postal-row">
+    <label>Tu CP:</label>
+    <input type="text" id="my-postal" placeholder="28001" maxlength="5" />
+  </div>
+
+  <div class="chat-users">
+    <div class="chat-users-title">CONVERSACIONES</div>
+    <div class="user-list" id="user-list"></div>
+  </div>
+
+  <div class="chat-messages" id="chat-messages"></div>
+
+  <div class="chat-compose">
+    <input type="text" id="chat-input" placeholder="Escribe un mensaje…" onkeydown="chatKeydown(event)" />
+    <button class="btn-send" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button id="chat-fab" onclick="toggleChat()" title="Chat">
+  💬
+  <span class="notif-dot"></span>
+</button>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer>
+  <strong>Circulando</strong> — Compra, Vende y Trueca cerca de ti · 2025<br>
+  <small>Plataforma de economía circular</small>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ============================================================
+   DATA MODEL
+============================================================ */
+
+// Categories
+// truequeAllowed: true  → valid for barter
+// truequeAllowed: false → NOT valid for barter (inmobiliaria, empleo, accesorios motor, etc.)
+const CATEGORIES = [
+  { id: 'coches',          name: 'Coches',            icon: '🚗', truequeAllowed: true  },
+  { id: 'motos',           name: 'Motos',             icon: '🏍️', truequeAllowed: true  },
+  { id: 'electronica',     name: 'Electrónica',       icon: '📱', truequeAllowed: true  },
+  { id: 'electrodomesticos', name: 'Electrodomésticos', icon: '🔌', truequeAllowed: true  },
+  { id: 'ropa',            name: 'Ropa y Moda',       icon: '👗', truequeAllowed: true  },
+  { id: 'hogar',           name: 'Hogar y Jardín',    icon: '🏡', truequeAllowed: true  },
+  { id: 'deportes',        name: 'Deportes',          icon: '⚽', truequeAllowed: true  },
+  { id: 'juguetes',        name: 'Juguetes',          icon: '🧸', truequeAllowed: true  },
+  { id: 'libros',          name: 'Libros y Música',   icon: '📚', truequeAllowed: true  },
+  { id: 'informatica',     name: 'Informática',       icon: '💻', truequeAllowed: true  },
+  { id: 'coleccionismo',   name: 'Coleccionismo',     icon: '🪙', truequeAllowed: true  },
+  // ⛔ NOT allowed for trueque
+  { id: 'inmobiliaria',    name: 'Inmobiliaria',      icon: '🏢', truequeAllowed: false },
+  { id: 'empleo',          name: 'Empleo',            icon: '💼', truequeAllowed: false },
+  { id: 'accesorios_motor',name: 'Accesorios Motor',  icon: '🔧', truequeAllowed: false },
+  { id: 'servicios',       name: 'Servicios',         icon: '🛠️', truequeAllowed: false },
+  { id: 'otros',           name: 'Otros',             icon: '📦', truequeAllowed: false },
+];
+
+// Helper: trueque-allowed category IDs
+const TRUEQUE_VALID_CATEGORIES = CATEGORIES
+  .filter(c => c.truequeAllowed)
+  .map(c => c.id);
+
+// Sample article images (Picsum for demo)
+function imgUrl(seed, w=400, h=300) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+}
+
+// Sample users (first set = premium, used in featured)
+const USERS = [
+  { id: 'u1', name: 'Ana García',    postal: '28001', premium: true,  avatar: imgUrl('user1',80,80) },
+  { id: 'u2', name: 'Carlos López',  postal: '08010', premium: true,  avatar: imgUrl('user2',80,80) },
+  { id: 'u3', name: 'Marta Ruiz',    postal: '41001', premium: true,  avatar: imgUrl('user3',80,80) },
+  { id: 'u4', name: 'Pedro Sanz',    postal: '46001', premium: true,  avatar: imgUrl('user4',80,80) },
+  { id: 'u5', name: 'Lucía Martín',  postal: '15001', premium: true,  avatar: imgUrl('user5',80,80) },
+  { id: 'u6', name: 'Tomás Vega',    postal: '50001', premium: true,  avatar: imgUrl('user6',80,80) },
+  { id: 'u7', name: 'Sara Blanco',   postal: '29001', premium: true,  avatar: imgUrl('user7',80,80) },
+  { id: 'u8', name: 'Miguel Peña',   postal: '30001', premium: true,  avatar: imgUrl('user8',80,80) },
+  { id: 'u9', name: 'Elena Torres',  postal: '35001', premium: false, avatar: imgUrl('user9',80,80) },
+  { id: 'u10', name: 'Javier Mora',  postal: '03001', premium: false, avatar: imgUrl('user10',80,80) },
+];
+
+// Sample articles data model with images
+const ALL_ARTICLES = [
+  // --- PREMIUM user articles (featured) ---
+  { id: 1, title: 'BMW Serie 3 2020 impecable',        category: 'coches',          price: 24500, mode: 'venta',   user: 'u1', postal: '28001', image: imgUrl('bmw3',400,220),        premium: true  },
+  { id: 2, title: 'iPhone 14 Pro 256GB',               category: 'electronica',     price: 850,   mode: 'venta',   user: 'u2', postal: '08010', image: imgUrl('iphone14',400,220),    premium: true  },
+  { id: 3, title: 'Sofa cheslong gris Nórdico',        category: 'hogar',           price: 0,     mode: 'trueque', user: 'u3', postal: '41001', image: imgUrl('sofa1',400,220),       premium: true  },
+  { id: 4, title: 'Yamaha MT-07 2022',                 category: 'motos',           price: 7200,  mode: 'venta',   user: 'u4', postal: '46001', image: imgUrl('moto1',400,220),       premium: true  },
+  { id: 5, title: 'MacBook Pro M2 16"',                category: 'informatica',     price: 1600,  mode: 'venta',   user: 'u5', postal: '15001', image: imgUrl('macbook',400,220),     premium: true  },
+  { id: 6, title: 'Audi A4 Avant 2019 diesel',        category: 'coches',          price: 18900, mode: 'venta',   user: 'u6', postal: '50001', image: imgUrl('audia4',400,220),      premium: true  },
+  { id: 7, title: 'PlayStation 5 + 3 juegos',         category: 'electronica',     price: 0,     mode: 'trueque', user: 'u7', postal: '29001', image: imgUrl('ps5',400,220),         premium: true  },
+  { id: 8, title: 'Chaqueta cuero mujer talla M',     category: 'ropa',            price: 120,   mode: 'venta',   user: 'u8', postal: '30001', image: imgUrl('jacket1',400,220),     premium: true  },
+  { id: 9, title: 'Trekking Giant Contend 3 2022',    category: 'deportes',        price: 650,   mode: 'venta',   user: 'u1', postal: '28001', image: imgUrl('bike1',400,220),       premium: true  },
+  { id:10, title: 'Samsung QLED 65" 4K',              category: 'electrodomesticos',price: 0,    mode: 'trueque', user: 'u2', postal: '08010', image: imgUrl('tv1',400,220),         premium: true  },
+
+  // --- REGULAR articles ---
+  { id:11, title: 'Lego Technic Lamborghini',         category: 'juguetes',        price: 110,   mode: 'venta',   user: 'u9', postal: '35001', image: imgUrl('lego1',400,220),       premium: false },
+  { id:12, title: 'El Señor de los Anillos (trilogía)',category: 'libros',         price: 0,     mode: 'trueque', user: 'u10',postal: '03001', image: imgUrl('books1',400,220),      premium: false },
+  { id:13, title: 'Zapatillas Nike Air Max 42',       category: 'ropa',            price: 75,    mode: 'venta',   user: 'u9', postal: '35001', image: imgUrl('shoes1',400,220),      premium: false },
+  { id:14, title: 'Tablet Samsung Galaxy A8',         category: 'electronica',     price: 180,   mode: 'venta',   user: 'u10',postal: '03001', image: imgUrl('tablet1',400,220),     premium: false },
+  { id:15, title: 'Mesa comedor 6 personas',          category: 'hogar',           price: 0,     mode: 'trueque', user: 'u9', postal: '35001', image: imgUrl('table1',400,220),      premium: false },
+  { id:16, title: 'Cámara Sony Alpha A6000',          category: 'electronica',     price: 320,   mode: 'venta',   user: 'u10',postal: '03001', image: imgUrl('camera1',400,220),     premium: false },
+  { id:17, title: 'Raqueta Babolat Pure Drive',       category: 'deportes',        price: 95,    mode: 'venta',   user: 'u9', postal: '35001', image: imgUrl('racket1',400,220),     premium: false },
+  { id:18, title: 'Silla gaming RGB',                 category: 'informatica',     price: 0,     mode: 'trueque', user: 'u10',postal: '03001', image: imgUrl('chair1',400,220),      premium: false },
+  { id:19, title: 'Kawasaki Ninja 400 2021',          category: 'motos',           price: 5500,  mode: 'venta',   user: 'u9', postal: '35001', image: imgUrl('kawasaki',400,220),    premium: false },
+  { id:20, title: 'Auriculares Sony WH-1000XM5',     category: 'electronica',     price: 250,   mode: 'venta',   user: 'u10',postal: '03001', image: imgUrl('headphones1',400,220), premium: false },
+  { id:21, title: 'Figuras coleccionables Funko',    category: 'coleccionismo',   price: 0,     mode: 'trueque', user: 'u9', postal: '35001', image: imgUrl('funko1',400,220),      premium: false },
+  { id:22, title: 'VW Golf GTI 2018',                category: 'coches',          price: 15200, mode: 'venta',   user: 'u10',postal: '03001', image: imgUrl('golf1',400,220),       premium: false },
+];
+
+/* ============================================================
+   FEATURED ROTATION (premium only, every 1 hour)
+============================================================ */
+const FEATURED_COLS = 5;   // cards per row
+const FEATURED_ROWS = 2;   // always 2 rows = premium articles
+const FEATURED_PAGE_SIZE = FEATURED_COLS * FEATURED_ROWS; // 10
+
+const premiumArticles = ALL_ARTICLES.filter(a => a.premium);
+
+let featuredRotationIndex = 0;
+// Persist rotation state between page loads using sessionStorage
+// to simulate an hourly server rotation
+(function initRotation() {
+  const stored = sessionStorage.getItem('circulando_featured_ts');
+  const storedIdx = sessionStorage.getItem('circulando_featured_idx');
+  const now = Date.now();
+  const ONE_HOUR = 3600 * 1000;
+  if (stored && storedIdx !== null && (now - parseInt(stored)) < ONE_HOUR) {
+    featuredRotationIndex = parseInt(storedIdx);
+  } else {
+    // Reset / advance rotation
+    const prevIdx = storedIdx !== null ? parseInt(storedIdx) : 0;
+    featuredRotationIndex = (prevIdx + 1) % Math.max(1, Math.ceil(premiumArticles.length / FEATURED_PAGE_SIZE));
+    sessionStorage.setItem('circulando_featured_ts', now);
+    sessionStorage.setItem('circulando_featured_idx', featuredRotationIndex);
+  }
+})();
+
+function getFeaturedArticles() {
+  const start = (featuredRotationIndex * FEATURED_PAGE_SIZE) % premiumArticles.length;
+  // Wrap around if needed
+  const result = [];
+  for (let i = 0; i < FEATURED_PAGE_SIZE; i++) {
+    result.push(premiumArticles[(start + i) % premiumArticles.length]);
+  }
+  return result;
+}
+
+/* ============================================================
+   COUNTDOWN TIMER (counts down to next hourly rotation)
+============================================================ */
+function startFeaturedCountdown() {
+  const stored = sessionStorage.getItem('circulando_featured_ts');
+  const ONE_HOUR = 3600 * 1000;
+
+  function tick() {
+    const now = Date.now();
+    const elapsed = stored ? (now - parseInt(stored)) : 0;
+    const remaining = Math.max(0, ONE_HOUR - elapsed);
+    const mm = String(Math.floor(remaining / 60000)).padStart(2, '0');
+    const ss = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+    const el = document.getElementById('featured-countdown');
+    if (el) el.textContent = `${mm}:${ss}`;
+
+    if (remaining === 0) {
+      // Rotate
+      featuredRotationIndex = (featuredRotationIndex + 1) % Math.max(1, Math.ceil(premiumArticles.length / FEATURED_PAGE_SIZE));
+      sessionStorage.setItem('circulando_featured_ts', Date.now());
+      sessionStorage.setItem('circulando_featured_idx', featuredRotationIndex);
+      renderFeatured();
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ============================================================
+   CARD RENDERING
+============================================================ */
+function crownSVG() {
+  return `<svg viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm0 2h14v2H5v-2z"/></svg>`;
+}
+function pinSVG() {
+  return `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+}
+
+function buildCard(article, animDelay = 0) {
+  const cat = CATEGORIES.find(c => c.id === article.category);
+  const user = USERS.find(u => u.id === article.user);
+  const isTrueque = article.mode === 'trueque';
+  const priceText = isTrueque
+    ? '🔄 Trueque'
+    : `${article.price.toLocaleString('es-ES')} €`;
+
+  const card = document.createElement('div');
+  card.className = 'card anim-in';
+  card.style.animationDelay = `${animDelay}ms`;
+
+  card.innerHTML = `
+    <div class="card-img-wrap">
+      <img src="${escapeHtml(article.image)}" alt="${escapeHtml(article.title)}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x220?text=Sin+imagen'" />
+      <span class="card-badge ${isTrueque ? 'trueque' : ''}">${cat ? escapeHtml(cat.icon + ' ' + cat.name) : ''}</span>
+      ${article.premium ? `<span class="crown-corner" title="Usuario premium">${crownSVG()}</span>` : ''}
+    </div>
+    <div class="card-info">
+      <div class="card-title">${escapeHtml(article.title)}</div>
+      <div class="card-price ${isTrueque ? 'trueque-price' : ''}">${escapeHtml(priceText)}</div>
+      <div class="card-meta">
+        <span>${pinSVG()} ${user ? escapeHtml(user.postal) : ''}</span>
+        <span>·</span>
+        <span>${user ? escapeHtml(user.name) : ''}</span>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn-contact" onclick="openChat('${escapeHtml(article.user)}', '${escapeHtml(String(article.id))}')">Contactar</button>
+      <button class="btn-chat-card" onclick="openChat('${escapeHtml(article.user)}', '${escapeHtml(String(article.id))}')">💬</button>
+    </div>
+  `;
+  return card;
+}
+
+/* ============================================================
+   RENDER FEATURED
+============================================================ */
+function renderFeatured() {
+  const grid = document.getElementById('featured-grid');
+  grid.innerHTML = '';
+  getFeaturedArticles().forEach((art, i) => {
+    grid.appendChild(buildCard(art, i * 40));
+  });
+}
+
+/* ============================================================
+   RENDER DYNAMIC CATEGORY ROWS
+============================================================ */
+const PROMO_MESSAGES = [
+  { icon: '🔥', text: '¡Miles de artículos nuevos cada día! Encuentra lo que buscas cerca de ti.' },
+  { icon: '🔄', text: '¿Ya no lo usas? Truécalo por algo que necesites. Sin dinero, sin complicaciones.' },
+  { icon: '⭐', text: 'Hazte Premium y llega a más personas. Tus artículos en las primeras posiciones.' },
+  { icon: '📍', text: 'Compra local, apoya la economía circular. El planeta te lo agradece.' },
+  { icon: '💬', text: 'Chatea directamente con el vendedor. Pregunta, negocia, ¡y listo!' },
+];
+let promoIdx = 0;
+
+function renderDynamicRows() {
+  const container = document.getElementById('dynamic-rows');
+  container.innerHTML = '';
+
+  // Group articles by category (non-premium rows or all)
+  const catIds = [...new Set(ALL_ARTICLES.map(a => a.category))];
+
+  catIds.forEach((catId, rowIndex) => {
+    const cat = CATEGORIES.find(c => c.id === catId);
+    if (!cat) return;
+    const articles = ALL_ARTICLES.filter(a => a.category === catId);
+    if (!articles.length) return;
+
+    // Promo strip before each 3rd row
+    if (rowIndex > 0 && rowIndex % 3 === 0) {
+      const strip = document.createElement('div');
+      strip.className = 'promo-strip';
+      const pm = PROMO_MESSAGES[promoIdx % PROMO_MESSAGES.length];
+      strip.innerHTML = `<span class="icon">${pm.icon}</span> ${pm.text}`;
+      container.appendChild(strip);
+      promoIdx++;
+    }
+
+    const section = document.createElement('div');
+    section.className = 'dynamic-section';
+    section.innerHTML = `
+      <div class="cat-row-header">
+        <div class="cat-row-title">${cat.icon} ${cat.name}</div>
+        <a href="#" class="see-all">Ver todos →</a>
+      </div>
+    `;
+    const grid = document.createElement('div');
+    grid.className = 'cards-scroll';
+    articles.forEach((art, i) => {
+      grid.appendChild(buildCard(art, i * 60));
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+}
+
+/* ============================================================
+   CATEGORY NAV
+============================================================ */
+function renderCatNav() {
+  const nav = document.getElementById('cat-nav-inner');
+  nav.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-btn active';
+  allBtn.textContent = '🏠 Todos';
+  allBtn.onclick = () => { setActiveNav(allBtn); renderDynamicRows(); };
+  nav.appendChild(allBtn);
+
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.innerHTML = `${cat.icon} ${cat.name}`;
+    btn.onclick = () => {
+      setActiveNav(btn);
+      filterByCategory(cat.id);
+    };
+    nav.appendChild(btn);
+  });
+}
+function setActiveNav(el) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function filterByCategory(catId) {
+  const container = document.getElementById('dynamic-rows');
+  container.innerHTML = '';
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const articles = ALL_ARTICLES.filter(a => a.category === catId);
+  if (!articles.length) {
+    container.innerHTML = '<p style="color:var(--text-sm);padding:20px;">No hay artículos en esta categoría aún.</p>';
+    return;
+  }
+  const section = document.createElement('div');
+  section.className = 'dynamic-section';
+  section.innerHTML = `<div class="cat-row-header"><div class="cat-row-title">${cat.icon} ${cat.name}</div></div>`;
+  const grid = document.createElement('div');
+  grid.className = 'cards-scroll';
+  articles.forEach((art, i) => grid.appendChild(buildCard(art, i * 50)));
+  section.appendChild(grid);
+  container.appendChild(section);
+}
+
+/* ============================================================
+   TICKER
+============================================================ */
+function renderTicker() {
+  const ticker = document.getElementById('ticker');
+  const messages = [
+    '🚗 BMW Serie 3 2020 – 24.500€ · Madrid',
+    '📱 iPhone 14 Pro 256GB – 850€ · Barcelona',
+    '🔄 Trueque: Sofá cheslón por electrodoméstico · Sevilla',
+    '🏍️ Yamaha MT-07 2022 – 7.200€ · Valencia',
+    '💻 MacBook Pro M2 – 1.600€ · A Coruña',
+    '⭐ Hazte Premium y destaca tus anuncios',
+    '🔄 ¿Tienes algo que ya no usas? ¡Truécalo!',
+    '📍 +15.000 artículos publicados esta semana',
+  ];
+  // Duplicate for seamless scroll
+  const all = [...messages, ...messages];
+  ticker.innerHTML = all.map(m => `<span>${m}</span> <span class="dot">●</span>`).join(' ');
+}
+
+/* ============================================================
+   PUBLISH MODAL
+============================================================ */
+let currentMode = 'venta';
+
+function populateCategorySelect() {
+  const sel = document.getElementById('f-category');
+  sel.innerHTML = '<option value="">— Selecciona una categoría —</option>';
+  const cats = currentMode === 'trueque'
+    ? CATEGORIES.filter(c => c.truequeAllowed)
+    : CATEGORIES;
+  cats.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = `${cat.icon} ${cat.name}`;
+    sel.appendChild(opt);
+  });
+}
+
+function openPublish(mode = 'venta') {
+  currentMode = mode;
+  setMode(mode);
+  document.getElementById('publish-modal').classList.add('open');
+}
+function closePublish() {
+  document.getElementById('publish-modal').classList.remove('open');
+  document.getElementById('publish-form').reset();
+  document.getElementById('cat-error').classList.remove('show');
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-mode-venta').classList.toggle('active', mode === 'venta');
+  document.getElementById('btn-mode-trueque').classList.toggle('active', mode === 'trueque');
+  document.getElementById('trueque-info').classList.toggle('show', mode === 'trueque');
+  document.getElementById('cat-error').classList.remove('show');
+  populateCategorySelect();
+}
+
+/* Frontend validation: block trueque with invalid category */
+function validateTruequeCategory() {
+  const catVal = document.getElementById('f-category').value;
+  const errEl = document.getElementById('cat-error');
+  if (currentMode === 'trueque' && catVal && !TRUEQUE_VALID_CATEGORIES.includes(catVal)) {
+    errEl.classList.add('show');
+    return false;
+  }
+  errEl.classList.remove('show');
+  return true;
+}
+
+function handlePublish(e) {
+  e.preventDefault();
+  const catVal = document.getElementById('f-category').value;
+
+  // Frontend validation for trueque category
+  if (currentMode === 'trueque') {
+    if (!TRUEQUE_VALID_CATEGORIES.includes(catVal)) {
+      document.getElementById('cat-error').classList.add('show');
+      return;
+    }
+  }
+
+  // Collect data
+  const article = {
+    title:    document.getElementById('f-title').value.trim(),
+    category: catVal,
+    price:    parseFloat(document.getElementById('f-price').value) || 0,
+    mode:     currentMode,
+    postal:   document.getElementById('f-postal').value.trim(),
+    image:    document.getElementById('f-image').value.trim() || imgUrl('new' + Date.now(), 400, 220),
+    desc:     document.getElementById('f-desc').value.trim(),
+  };
+
+  // In a real app this would POST to server.js endpoint
+  // We simulate a backend response here
+  simulateBackendValidation(article)
+    .then(() => {
+      alert(`✅ Artículo publicado correctamente en modo ${currentMode === 'trueque' ? 'Trueque' : 'Venta'}!`);
+      closePublish();
+    })
+    .catch(err => {
+      alert(`⛔ Error: ${err.message}`);
+    });
+}
+
+/* Simulates call to the Node/Express backend (server.js) */
+function simulateBackendValidation(article) {
+  return new Promise((resolve, reject) => {
+    // Mirror backend logic from server.js
+    if (article.mode === 'trueque' && !TRUEQUE_VALID_CATEGORIES.includes(article.category)) {
+      reject(new Error('Categoría no permitida para trueque. Categorías válidas: coches, motos, electrónica, electrodomésticos, ropa, hogar, deportes, juguetes, libros, informática, coleccionismo.'));
+    } else {
+      resolve(article);
+    }
+  });
+}
+
+/* ============================================================
+   SEARCH
+============================================================ */
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function handleSearch() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  if (!q) { renderDynamicRows(); renderCatNav(); return; }
+
+  const results = ALL_ARTICLES.filter(a =>
+    a.title.toLowerCase().includes(q) ||
+    (CATEGORIES.find(c => c.id === a.category)?.name.toLowerCase().includes(q))
+  );
+
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  const container = document.getElementById('dynamic-rows');
+  container.innerHTML = '';
+
+  if (!results.length) {
+    const p = document.createElement('p');
+    p.style.cssText = 'color:var(--text-sm);padding:20px 0;';
+    p.textContent = `No se encontraron resultados para "${q}"`;
+    container.appendChild(p);
+    return;
+  }
+
+  const section = document.createElement('div');
+  section.className = 'dynamic-section';
+
+  const header = document.createElement('div');
+  header.className = 'cat-row-header';
+  const title = document.createElement('div');
+  title.className = 'cat-row-title';
+  title.textContent = `🔍 Resultados para "${q}"`;
+  header.appendChild(title);
+  section.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.className = 'cards-scroll';
+  results.forEach((art, i) => grid.appendChild(buildCard(art, i * 40)));
+  section.appendChild(grid);
+  container.appendChild(section);
+}
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSearch();
+});
+
+/* ============================================================
+   CHAT
+============================================================ */
+let chatOpen = false;
+let activeChat = null; // userId
+let chatHistory = {}; // userId -> [{from, text, time}]
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('open', chatOpen);
+  if (chatOpen && !activeChat) {
+    // Default: open first user
+    openChat(USERS[0].id);
+  }
+}
+
+function openChat(userId, articleId) {
+  activeChat = userId;
+  if (!chatHistory[userId]) chatHistory[userId] = [];
+
+  // Pre-populate with a welcome message if first time
+  if (!chatHistory[userId].length) {
+    const user = USERS.find(u => u.id === userId);
+    const article = articleId ? ALL_ARTICLES.find(a => String(a.id) === String(articleId)) : null;
+    const greeting = article
+      ? `Hola, me interesa tu artículo "${article.title}". ¿Sigue disponible?`
+      : `Hola, me interesa contactar contigo.`;
+    chatHistory[userId].push({ from: 'system', text: greeting, time: nowStr() });
+  }
+
+  renderUserList();
+  renderMessages();
+
+  if (!chatOpen) toggleChat();
+}
+
+function renderUserList() {
+  const list = document.getElementById('user-list');
+  list.innerHTML = '';
+  USERS.forEach(user => {
+    const chip = document.createElement('div');
+    chip.className = `user-chip ${activeChat === user.id ? 'selected' : ''}`;
+    chip.innerHTML = `
+      <div class="avatar">${user.name.charAt(0)}</div>
+      <span class="uname">${user.name.split(' ')[0]}</span>
+    `;
+    chip.onclick = () => openChat(user.id);
+    list.appendChild(chip);
+  });
+}
+
+function renderMessages() {
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+  const history = chatHistory[activeChat] || [];
+  history.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = `msg ${msg.from === 'me' ? 'sent' : 'received'}`;
+    div.innerHTML = `${msg.text}<div class="msg-meta">${msg.time}</div>`;
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !activeChat) return;
+
+  const postal = document.getElementById('my-postal').value.trim();
+  const fullText = postal ? `${text} (CP: ${postal})` : text;
+
+  if (!chatHistory[activeChat]) chatHistory[activeChat] = [];
+  chatHistory[activeChat].push({ from: 'me', text: fullText, time: nowStr() });
+  input.value = '';
+  renderMessages();
+
+  // Simulate reply after 1.2s
+  setTimeout(() => {
+    const user = USERS.find(u => u.id === activeChat);
+    const replies = [
+      `¡Hola! Sí, sigue disponible.`,
+      `¡Por supuesto! ¿Cuándo te viene bien verlo?`,
+      `El artículo está en perfecto estado, no tiene ningún desperfecto.`,
+      `Podemos quedar en ${user?.postal || 'tu zona'}. ¿Te va bien esta semana?`,
+      `¿Tienes alguna oferta en mente?`,
+    ];
+    chatHistory[activeChat].push({
+      from: 'them',
+      text: replies[Math.floor(Math.random() * replies.length)],
+      time: nowStr(),
+    });
+    renderMessages();
+  }, 1200);
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter') sendMessage();
+}
+
+function nowStr() {
+  return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+/* ============================================================
+   ROTATING PROMO MESSAGES (every 6s)
+============================================================ */
+let globalPromoIdx = 0;
+function rotatePromoStrips() {
+  const strips = document.querySelectorAll('.promo-strip');
+  if (!strips.length) return;
+  strips.forEach((strip, i) => {
+    const pm = PROMO_MESSAGES[(globalPromoIdx + i) % PROMO_MESSAGES.length];
+    strip.innerHTML = `<span class="icon">${pm.icon}</span> ${pm.text}`;
+    strip.style.animation = 'none';
+    strip.offsetHeight; // reflow
+    strip.style.animation = 'fadeSlideUp .5s ease';
+  });
+  globalPromoIdx++;
+}
+setInterval(rotatePromoStrips, 6000);
+
+/* ============================================================
+   INIT
+============================================================ */
+function init() {
+  renderTicker();
+  renderCatNav();
+  renderFeatured();
+  renderDynamicRows();
+  populateCategorySelect();
+  startFeaturedCountdown();
+}
+
+init();
+</script>
+</body>
+</html>
